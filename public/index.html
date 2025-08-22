@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stock Tracker — Demo</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --card: #fff;
+        --text: #0f1724;
+        --muted: #6b7280;
+        --accent: #2563eb;
+        --chip: #eef2ff;
+      }
+      [data-theme="dark"] {
+        --bg: #0b1220;
+        --card: #0f1724;
+        --text: #e6eef8;
+        --muted: #9aa7bb;
+        --accent: #60a5fa;
+        --chip: #12314a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1100px;
+        margin: 24px auto;
+        padding: 18px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+      }
+      h1 {
+        font-size: 20px;
+        margin: 0;
+      }
+      nav {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      button {
+        background: var(--accent);
+        color: white;
+        border: 0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .controls {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .card {
+        background: var(--card);
+        padding: 14px;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+      }
+      .searchRow {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .search {
+        flex: 1;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        position: relative;
+        overflow: visible;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: transparent;
+      }
+      .results {
+        position: relative;
+      }
+      /* .dropdown{position:absolute;left:0;z-index: 999;right:0;background:var(--card);margin-top:8px;border-radius:8px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);max-height:260px;overflow:auto;z-index:50}
+    .dropdown button{display:block;width:100%;text-align:left;padding:10px;border:0;background:transparent} */
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: var(--chip);
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .chip button {
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+      }
+
+      .mainGrid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 16px;
+      }
+      .panel {
+        min-height: 240px;
+      }
+      canvas {
+        width: 100% !important;
+        height: 320px !important;
+      }
+
+      .rightCol {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+      }
+      .results {
+        position: relative;
+        width: 100%;
+        z-index: 50;
+      }
+      .dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        background: var(--card);
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        max-height: 260px;
+        overflow-y: auto;
+        display: none; /* initially hidden */
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+      }
+      .dropdown button {
+        width: 100%;
+        text-align: left;
+        padding: 10px;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+      }
+      @media (max-width: 900px) {
+        .mainGrid {
+          grid-template-columns: 1fr;
+        }
+        .rightCol {
+          order: 2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <header>
+        <div class="brand">
+          <div class="logo">ST</div>
+          <div>
+            <h1>Stock Tracker</h1>
+          </div>
+        </div>
+
+        <nav class="controls">
+          <label style="display: flex; align-items: center; gap: 8px"
+            ><input type="checkbox" id="darkToggle" /> Dark</label
+          >
+          <button id="loginBtn" class="ghost">Sign in</button>
+          <button id="exportBtn">Export CSV</button>
+        </nav>
+      </header>
+
+      <section class="card">
+        <div class="searchRow">
+          <div class="search" style="flex: 2">
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Search symbols or companies (eg. AAPL, TSLA or Apple)"
+            />
+            <div class="results" style="position: relative">
+              <div
+                id="searchDropdown"
+                class="dropdown"
+                style="display: none"
+              ></div>
+            </div>
+          </div>
+          <div
+            style="
+              width: 180px;
+              display: flex;
+              gap: 8px;
+              align-items: center;
+              justify-content: flex-end;
+            "
+          >
+            <button id="refreshBtn" class="ghost">Refresh</button>
+            <button id="clearBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="chips" id="selectedChips"></div>
+
+        <div class="mainGrid">
+          <div class="panel card">
+            <canvas id="priceChart"></canvas>
+          </div>
+
+          <aside class="rightCol">
+            <div class="card">
+              <h3 style="margin-top: 0">Latest prices</h3>
+              <div style="max-height: 260px; overflow: auto">
+                <table id="priceTable">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <h4 style="margin-top: 0">Provider</h4>
+              <div style="font-size: 13px; color: var(--muted)">
+                Using: <span id="providerLabel">Dummy</span>
+              </div>
+              <div style="margin-top: 10px; display: flex; gap: 8px">
+                <select id="providerSelect">
+                  <option value="dummy">Dummy</option>
+              
+                </select>
+                <button id="applyProvider" class="ghost">Apply</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+
+
+    <div
+      id="signupForm"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.5);
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        style="
+          width: 360px;
+          background: var(--card);
+          padding: 18px;
+          border-radius: 12px;
+          margin: auto;
+        "
+      >
+        <h3>Sign in</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <input id="username" placeholder="username" />
+          <input id="password" type="password" placeholder="password" />
+          <div
+            style="
+              display: flex;
+              gap: 8px;
+              justify-content: flex-end;
+              margin-top: 8px;
+            "
+          >
+            <button id="cancelLogin" class="ghost">Cancel</button>
+            <button id="doLogin">Sign in</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
